@@ -5,26 +5,63 @@ declare var axios: {
     patch: (url: string, data?: any, config?: any) => Promise<any>;
 };
 
+interface todo {
+    id: string,
+    text: string,
+}
+
 const addBtn = document.getElementById('addTodoBtn') as HTMLElement;
 const inputEl = document.getElementById('todoInput') as HTMLInputElement;
+let todoDiv = (document.getElementById('todoList') as HTMLElement);
+
+// Getting Todo
+window.onload = (event) => {
+    axios
+        .get(`http://localhost:3000/api/`)
+        .then(function (res) {
+
+            if (res.data.status === 'success') {
 
 
+                res.data.todos.forEach((val: todo) => {
+
+                    todoDiv.innerHTML +=
+                        `
+                    <li>
+                        <span>${val.text}</span>
+                        <div class="actions">
+                            <button data-id='${val.id}'>Edit</button>
+                            <button class="todo-complete" data-id='${val.id}'>Complete</button>
+                        </div>
+                    </li>
+                    `;
+                });
+            };
+        })
+        .catch(function (error: Error) {
+            console.error("Error Fetching todo:", error.message);
+        });
+};
+
+
+
+// Adding Todo
 addBtn.addEventListener('click', () => {
     const text = inputEl.value;
     if (text) {
-        
+
         axios
             .post(`http://localhost:3000/api/`, { text })
             .then(function (res) {
-    
-                if(res.data.status === 'success') {
-                    (document.getElementById('todoList') as HTMLElement).innerHTML +=
-                    `
+
+                if (res.data.status === 'success') {
+                    todoDiv.innerHTML +=
+                        `
                     <li>
                         <span>${text}</span>
                         <div class="actions">
-                            <button onclick="showEditForm(1732531102213)" data-id='${res.data.createdTodo.id}'>Edit</button>
-                            <button onclick="toggleComplete(1732531102213)" data-id='${res.data.createdTodo.id}'>Complete</button>
+                            <button data-id='${res.data.createdTodo.id}'>Edit</button>
+                            <button class="todo-complete" data-id='${res.data.createdTodo.id}'>Complete</button>
                         </div>
                     </li>
                     `
@@ -35,6 +72,31 @@ addBtn.addEventListener('click', () => {
             });
     };
 
+});
+
+
+// Complete Todo
+todoDiv.addEventListener('click', function (event: Event) {
+    const target = event.target as HTMLElement;
+
+    if (target && target.classList.contains("todo-complete")) {
+        const id: string | null = target.getAttribute('data-id');
+
+        axios
+            .delete(`http://localhost:3000/api/${id}`)
+            .then(function (res) {
+
+                if (res.data.status === 'success') {
+
+                    const li = target.closest("li") as HTMLElement;
+                    li.remove();
+
+                };
+            })
+            .catch(function (error: Error) {
+                console.error("Error Completing todo:", error.message);
+            });
+    }
 });
 
 // const todoInput = document.getElementById('todoInput');
