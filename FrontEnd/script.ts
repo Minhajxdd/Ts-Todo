@@ -13,6 +13,8 @@ interface todo {
 const addBtn = document.getElementById('addTodoBtn') as HTMLElement;
 const inputEl = document.getElementById('todoInput') as HTMLInputElement;
 let todoDiv = (document.getElementById('todoList') as HTMLElement);
+const editFormContainer = document.getElementById('editFormContainer') as HTMLElement;
+const editTodoInput = document.getElementById('editTodoInput') as HTMLInputElement;
 
 // Getting Todo
 window.onload = (event) => {
@@ -24,13 +26,12 @@ window.onload = (event) => {
 
 
                 res.data.todos.forEach((val: todo) => {
-
                     todoDiv.innerHTML +=
                         `
                     <li>
                         <span>${val.text}</span>
                         <div class="actions">
-                            <button data-id='${val.id}'>Edit</button>
+                            <button class="todo-edit" data-id='${val.id}'>Edit</button>
                             <button class="todo-complete" data-id='${val.id}'>Complete</button>
                         </div>
                     </li>
@@ -60,7 +61,7 @@ addBtn.addEventListener('click', () => {
                     <li>
                         <span>${text}</span>
                         <div class="actions">
-                            <button data-id='${res.data.createdTodo.id}'>Edit</button>
+                            <button class="todo-edit" data-id='${res.data.createdTodo.id}'>Edit</button>
                             <button class="todo-complete" data-id='${res.data.createdTodo.id}'>Complete</button>
                         </div>
                     </li>
@@ -79,8 +80,9 @@ addBtn.addEventListener('click', () => {
 todoDiv.addEventListener('click', function (event: Event) {
     const target = event.target as HTMLElement;
 
+    let id: string | null
     if (target && target.classList.contains("todo-complete")) {
-        const id: string | null = target.getAttribute('data-id');
+        id = target.getAttribute('data-id');
 
         axios
             .delete(`http://localhost:3000/api/${id}`)
@@ -97,79 +99,49 @@ todoDiv.addEventListener('click', function (event: Event) {
                 console.error("Error Completing todo:", error.message);
             });
     }
+    // Edit todo
+    else if (target && target.classList.contains("todo-edit")) {
+        id = target.getAttribute('data-id');
+
+        const text = ((target.closest("li") as HTMLElement)
+            .querySelector('span') as HTMLElement)
+            .innerHTML;
+
+        editTodoInput.value = text;
+
+        editFormContainer.classList.remove('hidden');
+
+        document.getElementById('saveEditBtn')?.addEventListener('click', function () {
+            editForm(id, target);
+        })
+    }
 });
 
-// const todoInput = document.getElementById('todoInput');
-// const addTodoBtn = document.getElementById('addTodoBtn');
-// const todoList = document.getElementById('todoList');
 
-// const editFormContainer = document.getElementById('editFormContainer');
-// const editTodoInput = document.getElementById('editTodoInput');
-// const saveEditBtn = document.getElementById('saveEditBtn');
-// const cancelEditBtn = document.getElementById('cancelEditBtn');
+function cancelForm() {
+    editFormContainer.classList.add('hidden');
+}
 
-// let todos = [];
-// let editingTodoId = null;
+function editForm(id: string | null, target: HTMLElement) {
+    const text = editTodoInput.value;
 
-// // Add a new todo
-// addTodoBtn.addEventListener('click', () => {
-//   const text = todoInput.value.trim();
-//   if (text) {
-//     todos.push({ id: Date.now(), text, completed: false });
-//     todoInput.value = '';
-//     renderTodos();
-//   }
-// });
+    axios
+        .patch(`http://localhost:3000/api/${id}`, { text })
+        .then(function (res) {
 
-// // Render todos
-// function renderTodos() {
-//   todoList.innerHTML = '';
-//   todos.forEach(todo => {
-//     const li = document.createElement('li');
-//     li.className = todo.completed ? 'completed' : '';
-//     li.innerHTML = `
-//       <span>${todo.text}</span>
-//       <div class="actions">
-//         <button onclick="toggleComplete(${todo.id})">Complete</button>
-//         <button onclick="showEditForm(${todo.id})">Edit</button>
-//         <button onclick="deleteTodo(${todo.id})">Delete</button>
-//       </div>
-//     `;
-//     todoList.appendChild(li);
-//   });
-// }
+            if (res.data.status === 'success') {
 
-// // Toggle completion
-// function toggleComplete(id) {
-//   todos = todos.map(todo => todo.id === id ? { ...todo, completed: !todo.completed } : todo);
-//   renderTodos();
-// }
+                console.log(res.data);
+                editFormContainer.classList.add('hidden');
 
-// // Show edit form
-// function showEditForm(id) {
-//   editingTodoId = id;
-//   const todo = todos.find(todo => todo.id === id);
-//   editTodoInput.value = todo.text;
-//   editFormContainer.classList.remove('hidden');
-// }
+                ((target.closest("li") as HTMLElement)
+                    .querySelector('span') as HTMLElement)
+                    .innerHTML = res.data.updatedTodo.text;
 
-// // Save edited todo
-// saveEditBtn.addEventListener('click', () => {
-//   todos = todos.map(todo => todo.id === editingTodoId ? { ...todo, text: editTodoInput.value.trim() } : todo);
-//   editFormContainer.classList.add('hidden');
-//   renderTodos();
-// });
+            };
+        })
+        .catch(function (error: Error) {
+            console.error("Error Completing todo:", error.message);
+        });
 
-// // Cancel edit
-// cancelEditBtn.addEventListener('click', () => {
-//   editFormContainer.classList.add('hidden');
-// });
-
-// // Delete todo
-// function deleteTodo(id) {
-//   todos = todos.filter(todo => todo.id !== id);
-//   renderTodos();
-// }
-
-// // Initial render
-// renderTodos();
+}
