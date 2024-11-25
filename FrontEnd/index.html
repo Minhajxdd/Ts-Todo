@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo List</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="todo-container">
+    <h1>📝 Todo List</h1>
+
+    <div class="add-todo">
+      <input type="text" id="todoInput" placeholder="What do you need to do?">
+      <button id="addTodoBtn">Add</button>
+    </div>
+
+    <ul id="todoList" class="todo-list">
+      <!-- Todos will be injected here -->
+    </ul>
+  </div>
+
+  <div id="editFormContainer" class="edit-form-container hidden">
+    <div class="edit-form">
+      <h3>Edit Your Task</h3>
+      <input type="text" id="editTodoInput" placeholder="Update your task">
+      <div class="edit-actions">
+        <button id="saveEditBtn" class="save-btn">Save Changes</button>
+        <button id="cancelEditBtn" class="cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js" defer></script>
+  <script src="script.js" defer></script>
+</body>
+</html>
